@@ -1,0 +1,16 @@
+{
+  "name": "寻梦 · 接住每一个梦",
+  "short_name": "寻梦",
+  "description": "记录、编织、回看你的梦，并接住其中的情绪。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#06070f",
+  "theme_color": "#0b0d18",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
