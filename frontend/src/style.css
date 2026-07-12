@@ -78,9 +78,9 @@ img { max-width: 100%; display: block; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .btn-primary {
   border-color: transparent; color: #14101f; font-weight: 600;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  background: var(--accent);
 }
-.btn-primary:hover { box-shadow: 0 10px 36px rgba(185,192,236,0.32); }
+.btn-primary:hover { background: #b4e5df; box-shadow: 0 10px 36px rgba(159,216,209,0.3); }
 .btn-ghost { background: transparent; border-color: var(--line); }
 .btn.lg { padding: clamp(13px, 1.6vw, 15px) clamp(26px, 3vw, 34px); font-size: clamp(15px, 1.1vw, 16px); }
 

@@ -43,7 +43,7 @@ async function doLogout() {
   backdrop-filter: blur(10px);
   background: linear-gradient(180deg, rgba(11,13,24,0.7), rgba(11,13,24,0));
 }
-.brand { display: flex; align-items: center; gap: 9px; }
+.brand { display: flex; align-items: center; gap: 9px; min-height: 32px; padding: 1px 0; }
 .moon {
   width: 16px; height: 16px; border-radius: 50%;
   background: radial-gradient(circle at 32% 32%, #fff, #aeb6e0 60%, #6f7197);
@@ -53,6 +53,7 @@ async function doLogout() {
 .links { display: flex; gap: 6px; align-items: center; }
 .lnk {
   color: var(--ink-dim); font-size: 14px; padding: 7px 13px; border-radius: 999px;
+  min-height: 32px; display: inline-flex; align-items: center;
   transition: all 0.2s var(--ease); border: none; background: transparent;
 }
 .lnk:hover { color: var(--ink); background: rgba(255,255,255,0.06); }
@@ -64,7 +65,7 @@ async function doLogout() {
 .logout:hover { color: #ff95a6; background: rgba(255,107,139,0.1); }
 @media (max-width: 480px) {
   .nav { padding: 12px 14px; }
-  .lnk { padding: 6px 9px; font-size: 13px; }
+  .lnk { min-height: 32px; padding: 6px 9px; font-size: 13px; }
   .who { display: none; }
 }
 </style>
