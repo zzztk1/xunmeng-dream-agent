@@ -54,13 +54,13 @@ npm run dev --prefix frontend
 ```powershell
 .\backend\.venv\Scripts\python -m compileall backend\app
 npm run typecheck --prefix frontend
-npm run build --prefix frontend
+npm run build
+npm run qa:model
 ```
 
-本地降级链路已验证注册、创建梦境、三场景生成、详情和持久化。真实 StepFun 文本与图片调用需配置密钥后终验。
+本地降级链路已验证注册、创建梦境、三场景生成、详情和持久化。`npm run qa:model` 会创建独立验收账号和梦境，核验真实 StepFun 文本模型、三张非 SVG 场景图和本地持久化 URL，并生成不入库的 `MODEL_QA_RUN.json`；缺少密钥时该验收应失败。
 
 ## 深入阅读
 
 - [产品与技术案例拆解](docs/作品案例拆解.md)
 - [演示与运行手册](docs/演示与运行手册.md)
-
