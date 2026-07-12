@@ -52,7 +52,11 @@ try:
             "display_name": "真实模型验收",
         })
         dream = request("/api/dreams", {
-            "fragments": [{"type": "text", "content": "雨停后，我在海边车站捡到一封写给未来自己的信。"}],
+            "fragments": [
+                {"type": "text", "content": "雨停后，我在海边车站捡到一封写给未来自己的信。"},
+                {"type": "text", "content": "站台尽头有一盏不会熄灭的蓝色灯。"},
+                {"type": "text", "content": "远处的海面传来小时候听过的钟声。"},
+            ],
             "emotion": {"label": "期待与迟疑", "intensity": 0.72},
             "title": "海边车站的信",
         }).get("data") or {}

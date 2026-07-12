@@ -4,7 +4,7 @@
 
 把醒来后说不清的梦境碎片，织成可以观看、漫游和长期回看的私人梦境。
 
-本仓库基于已获授权的完整系统迁入，完成了《寻梦》品牌改版、前端体验优化、StepFun 文本与图像模型迁移、本地图片持久化和一键运行工程化。
+本仓库基于已获授权的完整系统迁入，完成了《寻梦》品牌改版、前端体验优化、StepFun 文本与图像模型迁移、可切换的火山 SeedDream 图片适配、本地图片持久化和一键运行工程化。
 
 ## 产品亮点
 
@@ -22,9 +22,12 @@
 flowchart LR
   UI[Vue 3 / Pinia] --> API[FastAPI]
   API --> CHAT[StepFun Chat]
-  API --> IMAGE[StepFun Images]
+  API --> PROVIDER{Image Provider}
+  PROVIDER --> IMAGE[StepFun Images / 默认]
+  PROVIDER -. 可选切换 .-> VOLCANO[Volcano Ark / SeedDream]
   API --> DB[(SQLAlchemy / SQLite)]
   IMAGE --> ASSETS[本地场景图资产]
+  VOLCANO --> ASSETS
 ```
 
 ## 本地运行
@@ -47,12 +50,14 @@ npm run dev --prefix frontend
 前端：`http://127.0.0.1:3003`  
 后端文档：`http://127.0.0.1:8003/docs`
 
-复制 `backend/.env.example` 为 `backend/.env` 并设置 `STEPFUN_API_KEY` 可启用真实文本与图片生成。不要提交 `.env`、数据库、生成图片或日志。
+复制 `backend/config.env.example` 为 `backend/config.env` 并设置 `STEPFUN_API_KEY`，即可启用默认的 StepFun 文本与图片生成。需要切换火山生图时，将 `IMAGE_PROVIDER` 改为 `volcano`，并单独设置 `VOLCANO_API_KEY` 和 `VOLCANO_IMAGE_MODEL`；不要复用 StepFun Key，也不要提交配置文件、数据库、生成图片或日志。
 
 ## 验证
 
 ```powershell
 .\backend\.venv\Scripts\python -m compileall backend\app
+$env:PYTHONPATH = "$PWD\backend"
+.\backend\.venv\Scripts\python -m unittest discover -s backend\tests -v
 npm run typecheck --prefix frontend
 npm run build
 npm run qa:model

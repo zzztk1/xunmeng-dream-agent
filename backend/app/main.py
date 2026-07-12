@@ -30,9 +30,9 @@ async def lifespan(_app: FastAPI):
         ensure_default_user(_db)
     finally:
         _db.close()
-    log.info("DB 就绪；AI %s（LLM=%s, IMAGE=%s）",
+    log.info("DB 就绪；AI %s（LLM=%s, IMAGE=%s/%s）",
              "已启用" if settings.ai_enabled else "降级模式(未配置 STEPFUN_API_KEY)",
-             settings.LLM_MODEL, settings.image_model)
+             settings.LLM_MODEL, settings.image_provider, settings.image_model)
     yield
 
 
@@ -80,8 +80,11 @@ async def session_middleware(request: Request, call_next):
 def health():
     return {"code": 0, "data": {
         "provider": "stepfun" if settings.ai_enabled else "fallback",
+        "text_provider": "stepfun" if settings.ai_enabled else "fallback",
         "ai_enabled": settings.ai_enabled,
         "llm_model": settings.LLM_MODEL,
+        "image_provider": settings.image_provider,
+        "image_enabled": settings.image_enabled,
         "image_model": settings.image_model,
     }}
 

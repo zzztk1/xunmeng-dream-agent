@@ -11,7 +11,7 @@ import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
-from app.ai import stepfun
+from app.ai import image_provider, stepfun
 from app.ai.prompts import (ANALYZE_SYSTEM, WEAVE_FULL_SYSTEM, WEAVE_SYSTEM,
                             analyze_user_prompt, weave_full_user_prompt,
                             weave_user_prompt)
@@ -55,8 +55,10 @@ def _analyze(frag_text: str) -> dict:
             content = stepfun.chat(
                 [{"role": "system", "content": ANALYZE_SYSTEM},
                  {"role": "user", "content": analyze_user_prompt(frag_text)}],
-                temperature=0.4, max_tokens=1024)
-            return _safe_json(content)
+                temperature=0.4, max_tokens=2048, json_mode=True)
+            data = _safe_json(content)
+            data["_model"] = settings.LLM_MODEL
+            return data
         except Exception as e:  # noqa: BLE001
             log.warning("LLM 解析失败，降级：%s", e)
     return {"imagery": [], "characters": [], "places": [],
@@ -69,9 +71,10 @@ def _weave(frag_text: str, analysis: dict, primary: str, dream) -> dict:
             content = stepfun.chat(
                 [{"role": "system", "content": WEAVE_SYSTEM},
                  {"role": "user", "content": weave_user_prompt(frag_text, analysis, primary)}],
-                temperature=0.95, max_tokens=2048)
+                temperature=0.95, max_tokens=4096, json_mode=True)
             data = _safe_json(content)
             if data.get("scenes"):
+                data["_model"] = settings.LLM_MODEL
                 return _normalize(data)
         except Exception as e:  # noqa: BLE001
             log.warning("LLM 编织失败，降级：%s", e)
@@ -85,9 +88,10 @@ def _weave_full(frag_text: str, user_emotion: str, dream) -> dict:
             content = stepfun.chat(
                 [{"role": "system", "content": WEAVE_FULL_SYSTEM},
                  {"role": "user", "content": weave_full_user_prompt(frag_text, user_emotion)}],
-                temperature=0.92, max_tokens=2048)
+                temperature=0.92, max_tokens=4096, json_mode=True)
             data = _safe_json(content)
             if data.get("scenes"):
+                data["_model"] = settings.LLM_MODEL
                 return data
         except Exception as e:  # noqa: BLE001
             log.warning("LLM 织梦失败，降级：%s", e)
@@ -110,6 +114,7 @@ def _normalize(data: dict) -> dict:
         "global_style": (data.get("global_style") or DEFAULT_STYLE).strip(),
         "scenes": scenes or _fallback_scenes_from_text(""),
         "closing_reflection": (data.get("closing_reflection") or "我在这儿，这个梦已经被好好收下了。").strip(),
+        "_model": data.get("_model") or "fallback",
     }
 
 
@@ -141,6 +146,7 @@ def _fallback_weave(dream, primary: str) -> dict:
         "global_style": DEFAULT_STYLE,
         "scenes": scenes,
         "closing_reflection": f"这个梦里，你好像被一种「{primary}」的情绪轻轻包着。我在这儿，它已经被好好收下了。",
+        "_model": "fallback",
     }
 
 
@@ -156,11 +162,13 @@ def _compose_prompt(scene: dict, global_style: str) -> str:
 
 def _gen_image(idx: int, prompt: str, seed: int, ref_url: str | None, palette: dict):
     """返回 (ext, data_bytes, ark_url, meta)。网络生成，可在线程中执行（不碰 DB）。"""
-    if settings.ai_enabled:
+    if settings.image_enabled:
         try:
-            data, url = stepfun.generate_image(prompt, ref_url=ref_url, seed=seed + idx)
+            data, url = image_provider.generate_image(prompt, ref_url=ref_url, seed=seed + idx)
             return "jpeg", data, url, {"mode": "i2i" if ref_url else "t2i", "seed": seed + idx,
-                                       "ref": bool(ref_url), "scene_index": idx}
+                                       "ref": bool(ref_url), "scene_index": idx,
+                                       "provider": settings.image_provider,
+                                       "model": settings.image_model}
         except Exception as e:  # noqa: BLE001
             log.warning("图像生成失败(scene %s)，降级渐变：%s", idx, e)
     svg = gradient_svg(palette, seed, idx)
@@ -283,7 +291,7 @@ def weave_narrative(db, dream) -> None:
     db.add(Narrative(
         dream_id=dream.id, title=woven["title"], global_style=woven["global_style"],
         scenes=woven["scenes"], closing_reflection=woven["closing_reflection"],
-        model=settings.LLM_MODEL if settings.ai_enabled else "fallback"))
+        model=woven.get("_model") or "fallback"))
 
     for e in list(dream.emotions):
         if e.source == "ai":

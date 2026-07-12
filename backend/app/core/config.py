@@ -24,11 +24,22 @@ class Settings(BaseSettings):
     # 数据库
     DATABASE_URL: str = "sqlite:///./data/xunmeng.db"
 
-    # 阶跃星辰。文本与图像共用同一把服务端密钥。
-    STEPFUN_API_BASE: str = "https://api.stepfun.com/step_plan/v1"
+    # 阶跃星辰。文本与默认图像共用同一把服务端密钥。
+    STEPFUN_API_BASE: str = "https://api.stepfun.com/v1"
     STEPFUN_API_KEY: str = ""
     LLM_MODEL: str = "step-3.5-flash"
+    IMAGE_PROVIDER: str = "stepfun"
     IMAGE_MODEL: str = "step-image-edit-2"
+    STEPFUN_IMAGE_MODEL: str = ""
+
+    # 可选火山方舟 SeedDream 生图。仅 IMAGE_PROVIDER=volcano 时启用。
+    VOLCANO_ARK_BASE_URL: str = "https://ark.cn-beijing.volces.com/api/v3"
+    VOLCANO_API_KEY: str = ""
+    VOLCANO_IMAGE_MODEL: str = "doubao-seedream-5-0"
+    # 兼容授权源码原有环境变量命名。
+    ARK_API_KEY: str = ""
+    DOUBAO_API_KEY: str = ""
+    DOUBAO_IMAGE_MODEL: str = ""
 
     # 默认内置账号（网站自带，可直接登录体验；留空则不创建）
     DEFAULT_USERNAME: str = ""
@@ -50,7 +61,30 @@ class Settings(BaseSettings):
 
     @property
     def image_model(self) -> str:
-        return self.IMAGE_MODEL.strip()
+        if self.image_provider == "volcano":
+            return (self.DOUBAO_IMAGE_MODEL or self.VOLCANO_IMAGE_MODEL).strip()
+        return (self.STEPFUN_IMAGE_MODEL or self.IMAGE_MODEL).strip()
+
+    @property
+    def stepfun_image_model(self) -> str:
+        return (self.STEPFUN_IMAGE_MODEL or self.IMAGE_MODEL).strip()
+
+    @property
+    def image_provider(self) -> str:
+        provider = self.IMAGE_PROVIDER.strip().lower()
+        if provider in {"ark", "volcengine", "volcano"}:
+            return "volcano"
+        return "stepfun"
+
+    @property
+    def volcano_api_key(self) -> str:
+        return (self.VOLCANO_API_KEY or self.DOUBAO_API_KEY or self.ARK_API_KEY).strip()
+
+    @property
+    def image_enabled(self) -> bool:
+        if self.image_provider == "volcano":
+            return bool(self.volcano_api_key)
+        return self.ai_enabled
 
     @property
     def ai_enabled(self) -> bool:

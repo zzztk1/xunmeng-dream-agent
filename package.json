@@ -3,7 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "npm --prefix frontend run build",
+    "build": "python -m compileall backend/app backend/tests && npm --prefix frontend run build",
+    "test:backend": "python -m unittest discover -s backend/tests -v",
     "qa:model": "python scripts/model_qa.py"
   }
 }

@@ -24,7 +24,8 @@ def _headers() -> dict:
 
 
 def chat(messages: list[dict], *, model: str | None = None, temperature: float = 0.9,
-         max_tokens: int = 2048, timeout: float = 90.0, think: bool = False) -> str:
+         max_tokens: int = 4096, timeout: float = 90.0, think: bool = False,
+         json_mode: bool = False) -> str:
     """调用 StepFun Chat Completions，返回 message.content。
 
     think=False（默认）关闭模型深度思考(reasoning)，单次延迟约减半（织梦无需深度推理）。
@@ -39,6 +40,8 @@ def chat(messages: list[dict], *, model: str | None = None, temperature: float =
     }
     if not think:
         payload["thinking"] = {"type": "disabled"}
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     with httpx.Client(trust_env=False, timeout=timeout) as client:
         resp = client.post(f"{settings.STEPFUN_API_BASE.rstrip('/')}/chat/completions",
                            json=payload, headers=_headers())
@@ -56,7 +59,7 @@ def generate_image(prompt: str, *, ref_url: str | None = None, seed: int | None 
     if ref_url:
         prompt = f"{prompt}。保持与上一场景相同的角色设定、色彩、镜头语言和材质。"
     payload: dict = {
-        "model": model or settings.image_model,
+        "model": model or settings.stepfun_image_model,
         "prompt": prompt,
         "size": size,
         "response_format": "b64_json",
